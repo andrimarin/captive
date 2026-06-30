@@ -64,7 +64,10 @@ app.get('/success', (req, res) => {
 });
 
 // Iniciar servidor
-app.listen(PORT, () => {
-    console.log(`🚀 Portal externo corriendo en puerto ${PORT}`);
-    console.log(`📡 Esperando conexiones del OC200...`);
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
 });
