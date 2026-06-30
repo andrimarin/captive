@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso WiFi - Pago Móvil</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>📶 Acceso WiFi</h1>
+            <p class="subtitle">Para conectarte, realiza un pago por Pago Móvil</p>
+
+            <div class="payment-info">
+                <h3>📱 Datos para el pago:</h3>
+                <p><strong>Banco:</strong> 0102 - Banco de Venezuela</p>
+                <p><strong>Teléfono:</strong> 0414-1234567</p>
+                <p><strong>Cédula:</strong> V-12345678</p>
+                <p><strong>Monto:</strong> 100 Bs</p>
+            </div>
+
+            <form id="paymentForm">
+                <input type="hidden" id="clientMac" name="clientMac">
+                <input type="hidden" id="apMac" name="apMac">
+                <input type="hidden" id="ssidName" name="ssidName">
+
+                <div class="form-group">
+                    <label for="referenceNumber">Número de Referencia:</label>
+                    <input type="text" id="referenceNumber" name="referenceNumber" 
+                           placeholder="Ej: 123456789" required>
+                </div>
+
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    Verificar Pago y Conectar
+                </button>
+            </form>
+
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <script>
+        // Capturar parámetros de la URL
+        const urlParams = new URLSearchParams(window.location.search);
+        document.getElementById('clientMac').value = urlParams.get('clientMac') || '';
+        document.getElementById('apMac').value = urlParams.get('apMac') || '';
+        document.getElementById('ssidName').value = urlParams.get('ssidName') || '';
+
+        // Manejar el envío del formulario
+        document.getElementById('paymentForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const messageDiv = document.getElementById('message');
+
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Verificando...';
+            messageDiv.textContent = '';
+            messageDiv.className = 'message';
+
+            const formData = {
+                referenceNumber: document.getElementById('referenceNumber').value,
+                clientMac: document.getElementById('clientMac').value,
+                apMac: document.getElementById('apMac').value,
+                ssidName: document.getElementById('ssidName').value
+            };
+
+            try {
+                const response = await fetch('/verify-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    messageDiv.textContent = result.message;
+                    messageDiv.className = 'message success';
+                    
+                    // Redirigir después de 3 segundos
+                    setTimeout(() => {
+                        window.location.href = result.redirectUrl || 'https://google.com';
+                    }, 3000);
+                } else {
+                    messageDiv.textContent = result.message;
+                    messageDiv.className = 'message error';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Verificar Pago y Conectar';
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Error de conexión. Intenta de nuevo.';
+                messageDiv.className = 'message error';
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Verificar Pago y Conectar';
+            }
+        });
+    </script>
+</body>
+</html>
