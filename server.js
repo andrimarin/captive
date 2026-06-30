@@ -63,11 +63,20 @@ app.get('/success', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'success.html'));
 });
 
-// Iniciar servidor
+
+
+// Health check endpoint para Docker
 app.get('/health', (req, res) => {
     res.status(200).json({ 
         status: 'ok', 
         timestamp: new Date().toISOString(),
         uptime: process.uptime()
     });
+});
+
+
+// Iniciar servidor
+app.listen(PORT, () => {
+    console.log(`🚀 Portal externo corriendo en puerto ${PORT}`);
+    console.log(`📡 Esperando conexiones del OC200...`);
 });
